@@ -21,13 +21,13 @@
 <body>
   <div class="app">
     <h1>Arboles en juego (demo interactiva)</h1>
-    <p class="small">Inserta nodos para crear tu arbol y simula recorridos (in-order, pre-order, post-order).</p>
+    <p class="small">Inserta nodos para crear tu arbol y simula recorridos (inorden, preorden, postorden).</p>
     <div class="controls">
       <input id="nodeInput" type="number" placeholder="Valor de nodo (0-99)" min="0" max="99" />
       <button id="insertBtn">Insertar nodo</button>
-      <button id="inorderBtn">Recorrer in-order</button>
-      <button id="preorderBtn">Recorrer pre-order</button>
-      <button id="postorderBtn">Recorrer post-order</button>
+      <button id="inorderBtn">Recorrer inorden</button>
+      <button id="preorderBtn">Recorrer preorden</button>
+      <button id="postorderBtn">Recorrer postorden</button>
       <button id="resetBtn">Reiniciar</button>
     </div>
     <div class="panel">
@@ -143,9 +143,9 @@
       input.focus();
     });
 
-    document.getElementById('inorderBtn').addEventListener('click', () => runTraversal('in', 'in-order'));
-    document.getElementById('preorderBtn').addEventListener('click', () => runTraversal('pre', 'pre-order'));
-    document.getElementById('postorderBtn').addEventListener('click', () => runTraversal('post', 'post-order'));
+    document.getElementById('inorderBtn').addEventListener('click', () => runTraversal('in', 'inorden'));
+    document.getElementById('preorderBtn').addEventListener('click', () => runTraversal('pre', 'preorden'));
+    document.getElementById('postorderBtn').addEventListener('click', () => runTraversal('post', 'postorden'));
 
     document.getElementById('resetBtn').addEventListener('click', () => {
       root = null;

@@ -10,7 +10,13 @@ export default defineConfig({
       title: 'Guia de Unidades',
       description: 'Sitio educativo por unidades con teoria, descargas y demos interactivas.',
       defaultLocale: 'es',
-      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/anibal1409/estructuras-de-datos' }],
+      locales: {
+        root: {
+          label: 'Espanol',
+          lang: 'es'
+        }
+      },
+      social: [],
       sidebar: [
         { label: 'Inicio', items: [{ label: 'Presentacion', slug: 'index' }] },
         {

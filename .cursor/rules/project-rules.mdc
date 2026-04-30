@@ -1,0 +1,23 @@
+---
+description: Reglas generales del proyecto (idioma y flujo git)
+alwaysApply: true
+---
+
+# Reglas del proyecto
+
+## Idioma del sitio
+
+- Todo texto visible para usuarios en el sitio web debe estar en espanol.
+- Se permite ingles u otros idiomas solo en:
+  - bloques de codigo,
+  - nombres tecnicos de APIs, librerias o comandos,
+  - identificadores de codigo (variables, funciones, clases, props).
+- Evitar etiquetas o textos de interfaz en ingles (por ejemplo, "Search"); usar equivalente en espanol cuando sea configurable.
+- Antes de finalizar cambios de contenido, revisar que titulos, botones, enlaces, mensajes y descripcion esten en espanol.
+
+## Commits y push
+
+- No crear commits automaticamente.
+- Solo hacer `git add`, `git commit` o `git push` cuando el usuario lo pida de forma manual y explicita en el chat.
+- Si no hay instruccion explicita, dejar los cambios sin commit y reportar estado.
+- Si existe duda sobre si el usuario autorizo commit, preguntar antes de ejecutar comandos de commit/push.
