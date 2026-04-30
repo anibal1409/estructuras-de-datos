@@ -7,7 +7,7 @@ export default defineConfig({
   base: '/estructuras-de-datos',
   integrations: [
     starlight({
-      title: 'Guia de Unidades',
+      title: 'Estructura de Datos',
       description: 'Sitio educativo por unidades con teoria, descargas y demos interactivas.',
       defaultLocale: 'es',
       locales: {
@@ -22,8 +22,14 @@ export default defineConfig({
         {
           label: 'Unidades',
           items: [
-            { label: 'Unidad 1: Arboles en juego', slug: 'unidades/unidad-1' },
-            { label: 'Unidad 2 (placeholder)', slug: 'unidades/unidad-2' }
+            { label: 'Unidad I. Representacion de los datos en memoria', slug: 'unidades/unidad-i' },
+            { label: 'Unidad II. Gestion del almacenamiento persistente', slug: 'unidades/unidad-ii' },
+            {
+              label: 'Unidad III. Estructuras fundamentales y enlazadas + Hashing',
+              slug: 'unidades/unidad-iii'
+            },
+            { label: 'Unidad IV. Grafos', slug: 'unidades/unidad-iv' },
+            { label: 'Unidad V. Arboles', slug: 'unidades/unidad-v' }
           ]
         }
       ]

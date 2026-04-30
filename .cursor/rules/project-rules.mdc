@@ -14,6 +14,8 @@ alwaysApply: true
   - identificadores de codigo (variables, funciones, clases, props).
 - Evitar etiquetas o textos de interfaz en ingles (por ejemplo, "Search"); usar equivalente en espanol cuando sea configurable.
 - Antes de finalizar cambios de contenido, revisar que titulos, botones, enlaces, mensajes y descripcion esten en espanol.
+- Evitar el termino "obligatorio" en titulos o encabezados visibles del sitio; usar redacciones neutrales como "de la unidad", "recomendado" o "sugerido" segun corresponda.
+- Si se usa un termino tecnico en ingles (por ejemplo, "Little-endian"), siempre acompanarlo por su nombre o equivalencia en espanol y una explicacion breve de que es o que hace en el contexto.
 
 ## Commits y push
 
@@ -21,3 +23,15 @@ alwaysApply: true
 - Solo hacer `git add`, `git commit` o `git push` cuando el usuario lo pida de forma manual y explicita en el chat.
 - Si no hay instruccion explicita, dejar los cambios sin commit y reportar estado.
 - Si existe duda sobre si el usuario autorizo commit, preguntar antes de ejecutar comandos de commit/push.
+
+## Desarrollo obligatorio por unidad
+
+- Cada unidad debe incluir ejemplos de codigo en C++, Java y Python.
+- Todo codigo de cada unidad debe estar documentado y comentado linea por linea, explicando que hace cada instruccion o bloque inmediato.
+- Cada unidad debe incluir al menos un ejemplo visual/interactivo que ponga en practica los conceptos centrales de la unidad.
+- Los ejemplos visuales deben mostrar el comportamiento del concepto de forma grafica y didactica (por ejemplo: stack/heap, direccionamiento, conversion de datos, estados intermedios).
+- Cuando aplique, incluir simulaciones paso a paso del flujo de ejecucion para observar cambios en memoria/estructura durante la ejecucion.
+- Los recursos visuales de cada unidad deben quedar integrados en el sitio (embebidos o enlazados) y no solo descritos en texto.
+- En cada caso practico, mantener el codigo visible en la pagina y agregar un boton/desplegable "Ejecuta" para abrir el ejecutable editable del mismo caso.
+- Los ejecutables deben cargar como codigo base exactamente el archivo fuente oficial del caso (sin duplicar manualmente el codigo en varios lugares).
+- Si se actualiza el caso practico, se debe mantener sincronizado el archivo fuente que alimenta al ejecutable para evitar divergencias.

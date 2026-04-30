@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unidad I - Laboratorio visual de memoria</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; }
+    .app { max-width: 1120px; margin: 0 auto; padding: 16px; }
+    h1, h2, h3 { margin: 8px 0; }
+    .small { color: #94a3b8; font-size: 0.92rem; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+    .tabs button, button, select, input { background: #1e293b; color: #e2e8f0; border: 1px solid #475569; border-radius: 8px; padding: 8px 10px; }
+    button { cursor: pointer; }
+    .panel { background: #020617; border: 1px solid #334155; border-radius: 12px; padding: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+    .stack-item, .heap-item { padding: 6px 10px; border-radius: 8px; margin: 6px 0; font-family: monospace; }
+    .stack-item { background: #1d4ed8; }
+    .heap-item { background: #065f46; }
+    .mem-table { width: 100%; border-collapse: collapse; font-family: monospace; }
+    .mem-table td, .mem-table th { border: 1px solid #334155; padding: 6px; text-align: center; }
+    .muted { color: #94a3b8; }
+    .hidden { display: none; }
+    .pill { font-size: .82rem; color: #bfdbfe; border: 1px solid #1d4ed8; border-radius: 999px; padding: 2px 8px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Laboratorio visual: representacion de datos en memoria</h1>
+    <p class="small">Simulador didactico para stack/heap, direccionamiento, endianness y conversion de datos.</p>
+
+    <div class="tabs">
+      <button data-tab="tab-ejecucion">Ejecucion y consumo stack/heap</button>
+      <button data-tab="tab-direcciones">Direcciones y celdas de memoria</button>
+      <button data-tab="tab-endian">Little-endian (menor a mayor) vs Big-endian (mayor a menor)</button>
+      <button data-tab="tab-tipos">Tipos de datos: primitivos y compuestos</button>
+      <button data-tab="tab-conversion">Conversion de tipos</button>
+    </div>
+
+    <section id="tab-ejecucion" class="panel">
+      <h2>1) Ejecucion simulada (compila/ejecuta conceptual)</h2>
+      <p class="small">Ahora puedes cambiar de escenario para ver como cambian stack/heap al trabajar con arreglos, listas enlazadas, arboles y grafos.</p>
+      <div class="row">
+        <label for="escenarioSelect">Escenario:</label>
+        <select id="escenarioSelect">
+          <option value="base">Base: variables y punteros</option>
+          <option value="arreglo">Arreglos</option>
+          <option value="lista">Lista enlazada</option>
+          <option value="arbol">Arbol binario</option>
+          <option value="grafo">Grafo con lista de adyacencia</option>
+        </select>
+        <button id="pasoBtn">Siguiente paso</button>
+        <button id="reiniciarBtn">Reiniciar simulacion</button>
+        <span id="pasoTxt" class="muted">Paso actual: inicio</span>
+      </div>
+      <div class="grid">
+        <div class="panel">
+          <h3>Pila (stack)</h3>
+          <div id="stackView"></div>
+        </div>
+        <div class="panel">
+          <h3>Monton (heap)</h3>
+          <div id="heapView"></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:10px;">
+        <h3>Explicacion del paso</h3>
+        <div id="explicacionPaso">Pulsa "Siguiente paso" para iniciar.</div>
+      </div>
+    </section>
+
+    <section id="tab-direcciones" class="panel hidden">
+      <h2>2) Celdas, direcciones y contenido</h2>
+      <p class="small">Representacion simplificada de bytes en memoria (direccion hexadecimal + contenido).</p>
+      <div class="row">
+        <button id="llenarMemBtn">Cargar ejemplo</button>
+        <button id="limpiarMemBtn">Limpiar</button>
+      </div>
+      <table class="mem-table">
+        <thead><tr><th>Direccion</th><th>Byte</th><th>Interpretacion</th></tr></thead>
+        <tbody id="memBody"></tbody>
+      </table>
+    </section>
+
+    <section id="tab-endian" class="panel hidden">
+      <h2>3) Endianness visual</h2>
+      <p class="small">Observa como se guardan los bytes de un entero de 32 bits segun el orden de almacenamiento (endianness: orden de bytes).</p>
+      <div class="row">
+        <input id="enteroEndian" type="number" value="305419896" />
+        <button id="mostrarEndianBtn">Mostrar bytes</button>
+      </div>
+      <div class="grid">
+        <div class="panel"><h3>Little-endian</h3><div id="littleEndianOut"></div></div>
+        <div class="panel"><h3>Big-endian</h3><div id="bigEndianOut"></div></div>
+      </div>
+    </section>
+
+    <section id="tab-tipos" class="panel hidden">
+      <h2>4) Tipos de datos: primitivos y compuestos</h2>
+      <p class="small">Compara representacion, tamano aproximado y comportamiento en memoria para tipos primitivos y tipos compuestos.</p>
+      <div class="row">
+        <label for="tipoCategoria">Categoria:</label>
+        <select id="tipoCategoria">
+          <option value="primitivo">Primitivo</option>
+          <option value="compuesto">Compuesto</option>
+        </select>
+        <label for="tipoEjemplo">Ejemplo:</label>
+        <select id="tipoEjemplo"></select>
+        <button id="mostrarTipoBtn">Mostrar representacion</button>
+      </div>
+      <div class="grid">
+        <div class="panel">
+          <h3>Vista conceptual en memoria</h3>
+          <div id="tipoMemView" class="small">Selecciona un tipo y pulsa "Mostrar representacion".</div>
+        </div>
+        <div class="panel">
+          <h3>Detalle tecnico</h3>
+          <table class="mem-table">
+            <tbody id="tipoDetalleBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-conversion" class="panel hidden">
+      <h2>5) Conversion de datos</h2>
+      <p class="small">Convierte entre decimal, binario, hexadecimal y caracter ASCII (si aplica).</p>
+      <div class="row">
+        <input id="valorConv" type="number" value="65" min="0" max="255" />
+        <button id="convertirBtn">Convertir</button>
+      </div>
+      <div class="panel">
+        <div id="convOut">Sin conversion aun.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('[data-tab]');
+    const sections = ['tab-ejecucion', 'tab-direcciones', 'tab-endian', 'tab-tipos', 'tab-conversion'];
+    tabs.forEach((b) => b.addEventListener('click', () => {
+      sections.forEach((id) => document.getElementById(id).classList.add('hidden'));
+      document.getElementById(b.dataset.tab).classList.remove('hidden');
+    }));
+
+    const escenarios = {
+      base: [
+        { titulo: 'Inicio del programa', stack: ['main()'], heap: [], texto: 'Se crea el frame de main en stack. Aun no hay reserva en heap.' },
+        { titulo: 'Declaracion local', stack: ['main()', 'int contador = 3'], heap: [], texto: 'contador vive en stack porque es variable local de la funcion.' },
+        { titulo: 'Reserva dinamica', stack: ['main()', 'int contador = 3', 'int* ptr -> 0x2000'], heap: ['0x2000: int = 25'], texto: 'ptr (puntero) esta en stack, pero el dato 25 esta en heap.' },
+        { titulo: 'Nueva reserva', stack: ['main()', 'int contador = 3', 'int* ptr -> 0x2000', 'char* nombre -> 0x3000'], heap: ['0x2000: int = 25', '0x3000: "Ana"'], texto: 'Se agrega otro bloque en heap para una cadena.' },
+        { titulo: 'Liberacion', stack: ['main()', 'int contador = 3', 'int* ptr = null', 'char* nombre = null'], heap: [], texto: 'El programa libera heap y pone punteros en null para evitar errores.' }
+      ],
+      arreglo: [
+        { titulo: 'Declaracion de arreglo estatico', stack: ['main()', 'int arr[5] = {7,2,9,1,4}'], heap: [], texto: 'El arreglo estatico vive completo en stack porque su tamano es fijo en tiempo de compilacion.' },
+        { titulo: 'Lectura secuencial', stack: ['main()', 'arr[0..4] en stack', 'for i=0..4'], heap: [], texto: 'Recorrer un arreglo es eficiente por localidad de memoria: las celdas son contiguas.' },
+        { titulo: 'Arreglo dinamico', stack: ['main()', 'int* arrDin -> 0x4000', 'int n=5'], heap: ['0x4000..0x4013: [7,2,9,1,4]'], texto: 'Con asignacion dinamica, el puntero vive en stack y los datos contiguos en heap.' },
+        { titulo: 'Liberacion de arreglo dinamico', stack: ['main()', 'int* arrDin = null'], heap: [], texto: 'Se libera heap para evitar fuga de memoria.' }
+      ],
+      lista: [
+        { titulo: 'Nodo cabeza', stack: ['main()', 'Nodo* head -> 0x5000'], heap: ['0x5000: {dato:10, next:null}'], texto: 'Cada nodo se reserva por separado en heap; no hay contiguedad garantizada.' },
+        { titulo: 'Insercion de segundo nodo', stack: ['main()', 'head -> 0x5000', 'tmp -> 0x5100'], heap: ['0x5000: {10, next:0x5100}', '0x5100: {20, next:null}'], texto: 'El nodo 1 apunta al nodo 2 mediante un puntero next.' },
+        { titulo: 'Insercion de tercer nodo', stack: ['main()', 'head -> 0x5000', 'tmp -> 0x5200'], heap: ['0x5000: {10, next:0x5100}', '0x5100: {20, next:0x5200}', '0x5200: {30, next:null}'], texto: 'La lista enlazada crece dinamicamente sin copiar todos los elementos.' },
+        { titulo: 'Eliminacion del nodo central', stack: ['main()', 'head -> 0x5000'], heap: ['0x5000: {10, next:0x5200}', '0x5200: {30, next:null}'], texto: 'Se reajustan punteros para saltar el nodo eliminado y luego se libera su memoria.' }
+      ],
+      arbol: [
+        { titulo: 'Raiz del arbol', stack: ['main()', 'Nodo* raiz -> 0x6000'], heap: ['0x6000: {8, izq:null, der:null}'], texto: 'El arbol inicia con una raiz almacenada en heap.' },
+        { titulo: 'Insercion de hijos', stack: ['main()', 'raiz -> 0x6000'], heap: ['0x6000: {8, izq:0x6100, der:0x6200}', '0x6100: {3, izq:null, der:null}', '0x6200: {10, izq:null, der:null}'], texto: 'Cada nodo nuevo se reserva en heap y se conecta con punteros izquierdo/derecho.' },
+        { titulo: 'Insercion de nivel 2', stack: ['main()', 'raiz -> 0x6000', 'llamada recursiva insertar(6)'], heap: ['0x6000: {8, izq:0x6100, der:0x6200}', '0x6100: {3, izq:0x6300, der:0x6400}', '0x6200: {10, izq:null, der:null}', '0x6300: {1, izq:null, der:null}', '0x6400: {6, izq:null, der:null}'], texto: 'La recursion usa stack para llamadas y heap para nodos del arbol.' },
+        { titulo: 'Recorrido inorden', stack: ['main()', 'inorden(raiz)', 'inorden(izq)', '...'], heap: ['Nodos del arbol sin cambios'], texto: 'El recorrido consume stack por llamadas, pero no requiere nuevas reservas en heap.' }
+      ],
+      grafo: [
+        { titulo: 'Estructura base', stack: ['main()', 'vector<Lista> ady (4 vertices)'], heap: ['0x7000: lista v0', '0x7100: lista v1', '0x7200: lista v2', '0x7300: lista v3'], texto: 'El grafo se representa con lista de adyacencia: una lista por vertice.' },
+        { titulo: 'Agregar aristas', stack: ['main()', 'agregarArista(0,1)', 'agregarArista(0,2)'], heap: ['v0 -> [1,2]', 'v1 -> [2]', 'v2 -> [3]', 'v3 -> []'], texto: 'Cada arista inserta referencias en listas dinamicas en heap.' },
+        { titulo: 'BFS (anchura)', stack: ['main()', 'cola en stack: [0,1,2,3]', 'visitado[4]'], heap: ['adyacencias persisten en heap'], texto: 'BFS usa estructura auxiliar (cola) y arreglo visitado, mientras el grafo permanece en heap.' },
+        { titulo: 'DFS (profundidad)', stack: ['main()', 'dfs(0)', 'dfs(1)', 'dfs(2)', 'dfs(3)'], heap: ['adyacencias persisten en heap'], texto: 'DFS usa la pila de llamadas (stack) para profundizar en el recorrido del grafo.' }
+      ]
+    };
+
+    let escenarioActual = 'base';
+    let pasoIdx = 0;
+
+    function pasosActuales() {
+      return escenarios[escenarioActual];
+    }
+
+    function renderPaso() {
+      const p = pasosActuales()[pasoIdx];
+      document.getElementById('pasoTxt').innerHTML = `Paso actual: ${p.titulo} <span class="pill">${escenarioActual}</span>`;
+      document.getElementById('explicacionPaso').textContent = p.texto;
+      document.getElementById('stackView').innerHTML = p.stack.map((x) => `<div class="stack-item">${x}</div>`).join('') || '<div class="muted">Vacio</div>';
+      document.getElementById('heapView').innerHTML = p.heap.map((x) => `<div class="heap-item">${x}</div>`).join('') || '<div class="muted">Vacio</div>';
+    }
+
+    document.getElementById('escenarioSelect').addEventListener('change', (e) => {
+      escenarioActual = e.target.value;
+      pasoIdx = 0;
+  
+    const tiposData = {
+      primitivo: [
+        {
+          nombre: 'int (entero)',
+          tamano: '4 bytes (aprox.)',
+          descripcion: 'Valor numerico entero almacenado de forma directa en celdas contiguas.',
+          memoria: ['0x8100: 0x19', '0x8101: 0x00', '0x8102: 0x00', '0x8103: 0x00'],
+          uso: 'Contadores e indices.'
+        },
+        {
+          nombre: 'char (caracter)',
+          tamano: '1 byte',
+          descripcion: 'Codigo ASCII/UTF-8 de un caracter individual.',
+          memoria: ['0x8110: 0x41 (A)'],
+          uso: 'Procesamiento de caracteres.'
+        },
+        {
+          nombre: 'bool (logico)',
+          tamano: '1 byte (aprox.)',
+          descripcion: 'Representa verdadero o falso.',
+          memoria: ['0x8120: 0x01 (true)'],
+          uso: 'Condiciones de control.'
+        },
+        {
+          nombre: 'float (real)',
+          tamano: '4 bytes (IEEE 754)',
+          descripcion: 'Numero con decimales usando signo, exponente y mantisa.',
+          memoria: ['0x8130: 0x41', '0x8131: 0x48', '0x8132: 0x00', '0x8133: 0x00'],
+          uso: 'Calculos con precision media.'
+        }
+      ],
+      compuesto: [
+        {
+          nombre: 'Arreglo (array)',
+          tamano: 'n * tamano(tipo)',
+          descripcion: 'Elementos del mismo tipo en posiciones contiguas de memoria.',
+          memoria: ['0x8200: arr[0]=7', '0x8204: arr[1]=2', '0x8208: arr[2]=9'],
+          uso: 'Acceso rapido por indice.'
+        },
+        {
+          nombre: 'Cadena (string)',
+          tamano: 'longitud + metadatos',
+          descripcion: 'Secuencia de caracteres, normalmente con estructura auxiliar.',
+          memoria: ['0x8300: puntero a buffer', '0x9300: M', '0x9301: e', '0x9302: m'],
+          uso: 'Texto y etiquetas.'
+        },
+        {
+          nombre: 'struct / objeto',
+          tamano: 'Suma de campos + padding',
+          descripcion: 'Agrupa campos de distintos tipos bajo una sola entidad.',
+          memoria: ['0x8400: edad=20', '0x8404: promedio=17.5', '0x8408: activo=true'],
+          uso: 'Modelado de entidades.'
+        },
+        {
+          nombre: 'Lista enlazada',
+          tamano: 'nodos dispersos + punteros',
+          descripcion: 'Cada nodo guarda dato y referencia al siguiente nodo.',
+          memoria: ['0x8500: {10, next:0x8610}', '0x8610: {20, next:0x8740}'],
+          uso: 'Inserciones/eliminaciones dinamicas.'
+        }
+      ]
+    };
+
+    const tipoCategoria = document.getElementById('tipoCategoria');
+    const tipoEjemplo = document.getElementById('tipoEjemplo');
+
+    function cargarOpcionesTipo() {
+      const arr = tiposData[tipoCategoria.value];
+      tipoEjemplo.innerHTML = arr.map((x, i) => `<option value="${i}">${x.nombre}</option>`).join('');
+    }
+
+    function mostrarTipoSeleccionado() {
+      const item = tiposData[tipoCategoria.value][Number(tipoEjemplo.value) || 0];
+      document.getElementById('tipoMemView').innerHTML = item.memoria.map((m) => `<div class="heap-item">${m}</div>`).join('');
+      document.getElementById('tipoDetalleBody').innerHTML = `
+        <tr><th>Tipo</th><td>${item.nombre}</td></tr>
+        <tr><th>Tamano aproximado</th><td>${item.tamano}</td></tr>
+        <tr><th>Descripcion</th><td>${item.descripcion}</td></tr>
+        <tr><th>Uso comun</th><td>${item.uso}</td></tr>
+      `;
+    }
+
+    tipoCategoria.addEventListener('change', () => {
+      cargarOpcionesTipo();
+      mostrarTipoSeleccionado();
+    });
+    document.getElementById('mostrarTipoBtn').addEventListener('click', mostrarTipoSeleccionado);
+    cargarOpcionesTipo();
+    mostrarTipoSeleccionado();
+
+    renderPaso();
+    });
+
+    document.getElementById('pasoBtn').addEventListener('click', () => {
+      pasoIdx = (pasoIdx + 1) % pasosActuales().length;
+  
+    const tiposData = {
+      primitivo: [
+        {
+          nombre: 'int (entero)',
+          tamano: '4 bytes (aprox.)',
+          descripcion: 'Valor numerico entero almacenado de forma directa en celdas contiguas.',
+          memoria: ['0x8100: 0x19', '0x8101: 0x00', '0x8102: 0x00', '0x8103: 0x00'],
+          uso: 'Contadores e indices.'
+        },
+        {
+          nombre: 'char (caracter)',
+          tamano: '1 byte',
+          descripcion: 'Codigo ASCII/UTF-8 de un caracter individual.',
+          memoria: ['0x8110: 0x41 (A)'],
+          uso: 'Procesamiento de caracteres.'
+        },
+        {
+          nombre: 'bool (logico)',
+          tamano: '1 byte (aprox.)',
+          descripcion: 'Representa verdadero o falso.',
+          memoria: ['0x8120: 0x01 (true)'],
+          uso: 'Condiciones de control.'
+        },
+        {
+          nombre: 'float (real)',
+          tamano: '4 bytes (IEEE 754)',
+          descripcion: 'Numero con decimales usando signo, exponente y mantisa.',
+          memoria: ['0x8130: 0x41', '0x8131: 0x48', '0x8132: 0x00', '0x8133: 0x00'],
+          uso: 'Calculos con precision media.'
+        }
+      ],
+      compuesto: [
+        {
+          nombre: 'Arreglo (array)',
+          tamano: 'n * tamano(tipo)',
+          descripcion: 'Elementos del mismo tipo en posiciones contiguas de memoria.',
+          memoria: ['0x8200: arr[0]=7', '0x8204: arr[1]=2', '0x8208: arr[2]=9'],
+          uso: 'Acceso rapido por indice.'
+        },
+        {
+          nombre: 'Cadena (string)',
+          tamano: 'longitud + metadatos',
+          descripcion: 'Secuencia de caracteres, normalmente con estructura auxiliar.',
+          memoria: ['0x8300: puntero a buffer', '0x9300: M', '0x9301: e', '0x9302: m'],
+          uso: 'Texto y etiquetas.'
+        },
+        {
+          nombre: 'struct / objeto',
+          tamano: 'Suma de campos + padding',
+          descripcion: 'Agrupa campos de distintos tipos bajo una sola entidad.',
+          memoria: ['0x8400: edad=20', '0x8404: promedio=17.5', '0x8408: activo=true'],
+          uso: 'Modelado de entidades.'
+        },
+        {
+          nombre: 'Lista enlazada',
+          tamano: 'nodos dispersos + punteros',
+          descripcion: 'Cada nodo guarda dato y referencia al siguiente nodo.',
+          memoria: ['0x8500: {10, next:0x8610}', '0x8610: {20, next:0x8740}'],
+          uso: 'Inserciones/eliminaciones dinamicas.'
+        }
+      ]
+    };
+
+    const tipoCategoria = document.getElementById('tipoCategoria');
+    const tipoEjemplo = document.getElementById('tipoEjemplo');
+
+    function cargarOpcionesTipo() {
+      const arr = tiposData[tipoCategoria.value];
+      tipoEjemplo.innerHTML = arr.map((x, i) => `<option value="${i}">${x.nombre}</option>`).join('');
+    }
+
+    function mostrarTipoSeleccionado() {
+      const item = tiposData[tipoCategoria.value][Number(tipoEjemplo.value) || 0];
+      document.getElementById('tipoMemView').innerHTML = item.memoria.map((m) => `<div class="heap-item">${m}</div>`).join('');
+      document.getElementById('tipoDetalleBody').innerHTML = `
+        <tr><th>Tipo</th><td>${item.nombre}</td></tr>
+        <tr><th>Tamano aproximado</th><td>${item.tamano}</td></tr>
+        <tr><th>Descripcion</th><td>${item.descripcion}</td></tr>
+        <tr><th>Uso comun</th><td>${item.uso}</td></tr>
+      `;
+    }
+
+    tipoCategoria.addEventListener('change', () => {
+      cargarOpcionesTipo();
+      mostrarTipoSeleccionado();
+    });
+    document.getElementById('mostrarTipoBtn').addEventListener('click', mostrarTipoSeleccionado);
+    cargarOpcionesTipo();
+    mostrarTipoSeleccionado();
+
+    renderPaso();
+    });
+
+    document.getElementById('reiniciarBtn').addEventListener('click', () => {
+      pasoIdx = 0;
+  
+    const tiposData = {
+      primitivo: [
+        {
+          nombre: 'int (entero)',
+          tamano: '4 bytes (aprox.)',
+          descripcion: 'Valor numerico entero almacenado de forma directa en celdas contiguas.',
+          memoria: ['0x8100: 0x19', '0x8101: 0x00', '0x8102: 0x00', '0x8103: 0x00'],
+          uso: 'Contadores e indices.'
+        },
+        {
+          nombre: 'char (caracter)',
+          tamano: '1 byte',
+          descripcion: 'Codigo ASCII/UTF-8 de un caracter individual.',
+          memoria: ['0x8110: 0x41 (A)'],
+          uso: 'Procesamiento de caracteres.'
+        },
+        {
+          nombre: 'bool (logico)',
+          tamano: '1 byte (aprox.)',
+          descripcion: 'Representa verdadero o falso.',
+          memoria: ['0x8120: 0x01 (true)'],
+          uso: 'Condiciones de control.'
+        },
+        {
+          nombre: 'float (real)',
+          tamano: '4 bytes (IEEE 754)',
+          descripcion: 'Numero con decimales usando signo, exponente y mantisa.',
+          memoria: ['0x8130: 0x41', '0x8131: 0x48', '0x8132: 0x00', '0x8133: 0x00'],
+          uso: 'Calculos con precision media.'
+        }
+      ],
+      compuesto: [
+        {
+          nombre: 'Arreglo (array)',
+          tamano: 'n * tamano(tipo)',
+          descripcion: 'Elementos del mismo tipo en posiciones contiguas de memoria.',
+          memoria: ['0x8200: arr[0]=7', '0x8204: arr[1]=2', '0x8208: arr[2]=9'],
+          uso: 'Acceso rapido por indice.'
+        },
+        {
+          nombre: 'Cadena (string)',
+          tamano: 'longitud + metadatos',
+          descripcion: 'Secuencia de caracteres, normalmente con estructura auxiliar.',
+          memoria: ['0x8300: puntero a buffer', '0x9300: M', '0x9301: e', '0x9302: m'],
+          uso: 'Texto y etiquetas.'
+        },
+        {
+          nombre: 'struct / objeto',
+          tamano: 'Suma de campos + padding',
+          descripcion: 'Agrupa campos de distintos tipos bajo una sola entidad.',
+          memoria: ['0x8400: edad=20', '0x8404: promedio=17.5', '0x8408: activo=true'],
+          uso: 'Modelado de entidades.'
+        },
+        {
+          nombre: 'Lista enlazada',
+          tamano: 'nodos dispersos + punteros',
+          descripcion: 'Cada nodo guarda dato y referencia al siguiente nodo.',
+          memoria: ['0x8500: {10, next:0x8610}', '0x8610: {20, next:0x8740}'],
+          uso: 'Inserciones/eliminaciones dinamicas.'
+        }
+      ]
+    };
+
+    const tipoCategoria = document.getElementById('tipoCategoria');
+    const tipoEjemplo = document.getElementById('tipoEjemplo');
+
+    function cargarOpcionesTipo() {
+      const arr = tiposData[tipoCategoria.value];
+      tipoEjemplo.innerHTML = arr.map((x, i) => `<option value="${i}">${x.nombre}</option>`).join('');
+    }
+
+    function mostrarTipoSeleccionado() {
+      const item = tiposData[tipoCategoria.value][Number(tipoEjemplo.value) || 0];
+      document.getElementById('tipoMemView').innerHTML = item.memoria.map((m) => `<div class="heap-item">${m}</div>`).join('');
+      document.getElementById('tipoDetalleBody').innerHTML = `
+        <tr><th>Tipo</th><td>${item.nombre}</td></tr>
+        <tr><th>Tamano aproximado</th><td>${item.tamano}</td></tr>
+        <tr><th>Descripcion</th><td>${item.descripcion}</td></tr>
+        <tr><th>Uso comun</th><td>${item.uso}</td></tr>
+      `;
+    }
+
+    tipoCategoria.addEventListener('change', () => {
+      cargarOpcionesTipo();
+      mostrarTipoSeleccionado();
+    });
+    document.getElementById('mostrarTipoBtn').addEventListener('click', mostrarTipoSeleccionado);
+    cargarOpcionesTipo();
+    mostrarTipoSeleccionado();
+
+    renderPaso();
+    });
+
+    const memBody = document.getElementById('memBody');
+    document.getElementById('llenarMemBtn').addEventListener('click', () => {
+      const filas = [
+        ['0x1000', '0x41', 'Caracter A / 65 decimal'],
+        ['0x1001', '0x00', 'Byte alto de un entero pequeno'],
+        ['0x1002', '0x19', 'Parte de valor 25 decimal'],
+        ['0x1003', '0x7F', 'Valor maximo int8 con signo']
+      ];
+      memBody.innerHTML = filas.map((f) => `<tr><td>${f[0]}</td><td>${f[1]}</td><td>${f[2]}</td></tr>`).join('');
+    });
+    document.getElementById('limpiarMemBtn').addEventListener('click', () => { memBody.innerHTML = ''; });
+
+    document.getElementById('mostrarEndianBtn').addEventListener('click', () => {
+      const n = Number(document.getElementById('enteroEndian').value) >>> 0;
+      const bytes = [n & 0xff, (n >>> 8) & 0xff, (n >>> 16) & 0xff, (n >>> 24) & 0xff];
+      const hex = (v) => '0x' + v.toString(16).padStart(2, '0').toUpperCase();
+      document.getElementById('littleEndianOut').textContent = bytes.map(hex).join('  ');
+      document.getElementById('bigEndianOut').textContent = [...bytes].reverse().map(hex).join('  ');
+    });
+
+    document.getElementById('convertirBtn').addEventListener('click', () => {
+      const v = Number(document.getElementById('valorConv').value);
+      const ascii = v >= 32 && v <= 126 ? String.fromCharCode(v) : 'No imprimible';
+      document.getElementById('convOut').innerHTML = `
+        Decimal: <b>${v}</b><br>
+        Binario: <b>${(v >>> 0).toString(2)}</b><br>
+        Hexadecimal: <b>0x${(v >>> 0).toString(16).toUpperCase()}</b><br>
+        ASCII: <b>${ascii}</b>
+      `;
+    });
+
+
+    const tiposData = {
+      primitivo: [
+        {
+          nombre: 'int (entero)',
+          tamano: '4 bytes (aprox.)',
+          descripcion: 'Valor numerico entero almacenado de forma directa en celdas contiguas.',
+          memoria: ['0x8100: 0x19', '0x8101: 0x00', '0x8102: 0x00', '0x8103: 0x00'],
+          uso: 'Contadores e indices.'
+        },
+        {
+          nombre: 'char (caracter)',
+          tamano: '1 byte',
+          descripcion: 'Codigo ASCII/UTF-8 de un caracter individual.',
+          memoria: ['0x8110: 0x41 (A)'],
+          uso: 'Procesamiento de caracteres.'
+        },
+        {
+          nombre: 'bool (logico)',
+          tamano: '1 byte (aprox.)',
+          descripcion: 'Representa verdadero o falso.',
+          memoria: ['0x8120: 0x01 (true)'],
+          uso: 'Condiciones de control.'
+        },
+        {
+          nombre: 'float (real)',
+          tamano: '4 bytes (IEEE 754)',
+          descripcion: 'Numero con decimales usando signo, exponente y mantisa.',
+          memoria: ['0x8130: 0x41', '0x8131: 0x48', '0x8132: 0x00', '0x8133: 0x00'],
+          uso: 'Calculos con precision media.'
+        }
+      ],
+      compuesto: [
+        {
+          nombre: 'Arreglo (array)',
+          tamano: 'n * tamano(tipo)',
+          descripcion: 'Elementos del mismo tipo en posiciones contiguas de memoria.',
+          memoria: ['0x8200: arr[0]=7', '0x8204: arr[1]=2', '0x8208: arr[2]=9'],
+          uso: 'Acceso rapido por indice.'
+        },
+        {
+          nombre: 'Cadena (string)',
+          tamano: 'longitud + metadatos',
+          descripcion: 'Secuencia de caracteres, normalmente con estructura auxiliar.',
+          memoria: ['0x8300: puntero a buffer', '0x9300: M', '0x9301: e', '0x9302: m'],
+          uso: 'Texto y etiquetas.'
+        },
+        {
+          nombre: 'struct / objeto',
+          tamano: 'Suma de campos + padding',
+          descripcion: 'Agrupa campos de distintos tipos bajo una sola entidad.',
+          memoria: ['0x8400: edad=20', '0x8404: promedio=17.5', '0x8408: activo=true'],
+          uso: 'Modelado de entidades.'
+        },
+        {
+          nombre: 'Lista enlazada',
+          tamano: 'nodos dispersos + punteros',
+          descripcion: 'Cada nodo guarda dato y referencia al siguiente nodo.',
+          memoria: ['0x8500: {10, next:0x8610}', '0x8610: {20, next:0x8740}'],
+          uso: 'Inserciones/eliminaciones dinamicas.'
+        }
+      ]
+    };
+
+    const tipoCategoria = document.getElementById('tipoCategoria');
+    const tipoEjemplo = document.getElementById('tipoEjemplo');
+
+    function cargarOpcionesTipo() {
+      const arr = tiposData[tipoCategoria.value];
+      tipoEjemplo.innerHTML = arr.map((x, i) => `<option value="${i}">${x.nombre}</option>`).join('');
+    }
+
+    function mostrarTipoSeleccionado() {
+      const item = tiposData[tipoCategoria.value][Number(tipoEjemplo.value) || 0];
+      document.getElementById('tipoMemView').innerHTML = item.memoria.map((m) => `<div class="heap-item">${m}</div>`).join('');
+      document.getElementById('tipoDetalleBody').innerHTML = `
+        <tr><th>Tipo</th><td>${item.nombre}</td></tr>
+        <tr><th>Tamano aproximado</th><td>${item.tamano}</td></tr>
+        <tr><th>Descripcion</th><td>${item.descripcion}</td></tr>
+        <tr><th>Uso comun</th><td>${item.uso}</td></tr>
+      `;
+    }
+
+    tipoCategoria.addEventListener('change', () => {
+      cargarOpcionesTipo();
+      mostrarTipoSeleccionado();
+    });
+    document.getElementById('mostrarTipoBtn').addEventListener('click', mostrarTipoSeleccionado);
+    cargarOpcionesTipo();
+    mostrarTipoSeleccionado();
+
+    renderPaso();
+  </script>
+</body>
+</html>

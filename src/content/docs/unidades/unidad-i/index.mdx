@@ -1,0 +1,185 @@
+---
+title: Unidad I. Representacion de los datos en memoria
+description: Desarrollo completo de fundamentos de memoria, tipos, punteros y gestion dinamica.
+---
+
+## Documento base de la unidad
+
+- [Descargar PDF oficial de la Unidad I](/estructuras-de-datos/descargas/unidad-i/unidad-i-representacion-datos-memoria.pdf)
+- [Descargar ZIP de recursos de la unidad](/estructuras-de-datos/descargas/unidad-i.zip)
+
+<iframe src="/estructuras-de-datos/descargas/unidad-i/unidad-i-representacion-datos-memoria.pdf" title="PDF Unidad I" style="width: 100%; height: 560px; border: 1px solid #334155; border-radius: 12px;"></iframe>
+
+## 1) Fundamentos de memoria en un computador
+
+Segun el documento, la memoria RAM se entiende como un conjunto de celdas direccionables donde cada direccion apunta a un contenido. Tambien se diferencia memoria estatica y dinamica, y se analiza la distribucion de segmentos: codigo, datos, pila y monton (heap).
+
+### Puntos clave
+
+- **Celda**: unidad de almacenamiento (tipicamente bytes).
+- **Direccion**: identificador de ubicacion en memoria.
+- **Contenido**: bits que representan valores o instrucciones.
+- **Stack**: variables locales y contexto de llamadas.
+- **Heap**: memoria solicitada dinamicamente en ejecucion.
+
+## 2) Tipos de datos: primitivos y compuestos
+
+- Primitivos: enteros, reales, caracteres y booleanos.
+- Compuestos: arreglos, cadenas, estructuras/objetos.
+- Comparativas de representacion: `array` continuo vs nodos enlazados.
+
+## 3) Punteros y direccionamiento
+
+Se trabaja declaracion, inicializacion, desreferencia y aritmetica de punteros. En C++ esto es directo; en Java/Python se usa modelo por referencias administradas por runtime/VM.
+
+## 4) Gestion dinamica de memoria
+
+- C++: `new`/`delete`, constructores/destructores y responsabilidad explicita.
+- Java: `new` + recoleccion de basura automatica.
+- Python: asignacion dinamica + conteo de referencias + GC.
+
+## 5) Representacion interna
+
+- Endianness (orden de bytes): little-endian (orden de bytes de menor a mayor significancia) y big-endian (orden de bytes de mayor a menor significancia).
+- Alineacion y padding: impacto en tamano y rendimiento.
+
+## Caso practico A (C++): segmentos de memoria
+
+Este ejemplo muestra variables globales, locales y dinamicas con direcciones en memoria.
+
+```cpp
+#include <iostream> // Incluye entrada/salida estandar.
+#include <vector>   // Incluye contenedor dinamico vector.
+using namespace std; // Permite usar nombres estandar sin prefijo std::.
+
+int globalEstatica = 42; // Variable global: vive en segmento estatico.
+
+int main() { // Punto de entrada del programa.
+  int localPila = 10; // Variable local: vive en la pila (stack).
+  int* enHeap = new int(25); // Reserva memoria dinamica en heap e inicializa con 25.
+  vector<int> dinamico = {1, 2, 3}; // Estructura dinamica administrada por la STL.
+
+  cout << "Valor global: " << globalEstatica << "\n"; // Muestra valor global.
+  cout << "Valor local: " << localPila << "\n"; // Muestra valor local.
+  cout << "Valor heap: " << *enHeap << "\n"; // Desreferencia puntero para leer heap.
+  cout << "Tamano vector: " << dinamico.size() << "\n"; // Consulta cantidad de elementos.
+
+  cout << "Direccion global: " << &globalEstatica << "\n"; // Imprime direccion de global.
+  cout << "Direccion local: " << &localPila << "\n"; // Imprime direccion de local.
+  cout << "Direccion heap: " << enHeap << "\n"; // Imprime direccion reservada en heap.
+
+  delete enHeap; // Libera memoria dinamica reservada con new.
+  enHeap = nullptr; // Evita puntero colgante despues de liberar.
+  return 0; // Finaliza el programa correctamente.
+} // Fin de main.
+```
+
+**Descarga:** [memoria_segmentos.cpp](/estructuras-de-datos/descargas/unidad-i/memoria_segmentos.cpp)
+
+<details>
+<summary><strong>Ejecuta</strong> el caso C++</summary>
+
+<iframe src="/estructuras-de-datos/demos/unidad-i-casos-ejecutables.html?lang=cpp" title="Ejecutable C++ Unidad I" style="width: 100%; height: 700px; border: 1px solid #334155; border-radius: 12px;"></iframe>
+</details>
+
+
+## Caso practico B (Java): agenda dinamica en heap
+
+```java
+import java.util.ArrayList; // Importa lista dinamica para almacenar contactos.
+
+class Contacto { // Define un tipo compuesto para un contacto.
+    String nombre; // Guarda nombre del contacto.
+    String telefono; // Guarda telefono del contacto.
+
+    Contacto(String nombre, String telefono) { // Constructor que inicializa atributos.
+        this.nombre = nombre; // Asigna parametro nombre al atributo.
+        this.telefono = telefono; // Asigna parametro telefono al atributo.
+    } // Fin del constructor.
+} // Fin de clase Contacto.
+
+public class agenda_dinamica { // Clase principal del ejemplo.
+    public static void main(String[] args) { // Metodo de inicio del programa.
+        ArrayList<Contacto> agenda = new ArrayList<>(); // Crea lista dinamica en heap.
+
+        agenda.add(new Contacto("Ana", "0412-1111111")); // Inserta primer contacto.
+        agenda.add(new Contacto("Luis", "0412-2222222")); // Inserta segundo contacto.
+        agenda.add(new Contacto("Marta", "0412-3333333")); // Inserta tercer contacto.
+
+        for (Contacto c : agenda) { // Recorre cada contacto almacenado.
+            System.out.println(c.nombre + " -> " + c.telefono); // Muestra datos del contacto.
+        } // Fin del recorrido.
+
+        System.out.println("Total contactos: " + agenda.size()); // Imprime cantidad total.
+    } // Fin de main.
+} // Fin de clase principal.
+```
+
+**Descarga:** [agenda_dinamica.java](/estructuras-de-datos/descargas/unidad-i/agenda_dinamica.java)
+
+<details>
+<summary><strong>Ejecuta</strong> el caso Java</summary>
+
+<iframe src="/estructuras-de-datos/demos/unidad-i-casos-ejecutables.html?lang=java" title="Ejecutable Java Unidad I" style="width: 100%; height: 700px; border: 1px solid #334155; border-radius: 12px;"></iframe>
+</details>
+
+
+## Caso practico C (Python): comparacion de estructuras
+
+```python
+import sys  # Importa utilidades para medir tamano aproximado en memoria.
+import time  # Importa utilidades para medir tiempo de ejecucion.
+
+N = 100000  # Define cantidad de elementos para la prueba.
+
+inicio_lista = time.perf_counter()  # Marca tiempo inicial para lista dinamica.
+lista_dinamica = []  # Crea lista vacia (estructura dinamica).
+for i in range(N):  # Repite N inserciones.
+    lista_dinamica.append(i)  # Inserta elemento al final de la lista.
+fin_lista = time.perf_counter()  # Marca tiempo final de insercion en lista.
+
+inicio_tupla = time.perf_counter()  # Marca tiempo inicial para tupla (inmutable).
+tupla_estatica = tuple(range(N))  # Construye tupla con N elementos.
+fin_tupla = time.perf_counter()  # Marca tiempo final de construccion de tupla.
+
+print(f"Tiempo lista dinamica: {fin_lista - inicio_lista:.6f} s")  # Muestra tiempo de lista.
+print(f"Tiempo tupla: {fin_tupla - inicio_tupla:.6f} s")  # Muestra tiempo de tupla.
+print(f"Tamano lista (bytes): {sys.getsizeof(lista_dinamica)}")  # Tamano base de lista.
+print(f"Tamano tupla (bytes): {sys.getsizeof(tupla_estatica)}")  # Tamano base de tupla.
+```
+
+**Descarga:** [comparacion_memoria.py](/estructuras-de-datos/descargas/unidad-i/comparacion_memoria.py)
+
+<details>
+<summary><strong>Ejecuta</strong> el caso Python</summary>
+
+<iframe src="/estructuras-de-datos/demos/unidad-i-casos-ejecutables.html?lang=python" title="Ejecutable Python Unidad I" style="width: 100%; height: 820px; border: 1px solid #334155; border-radius: 12px;"></iframe>
+</details>
+
+
+## Laboratorio visual de la unidad
+
+Este laboratorio aplica de forma grafica los contenidos de la Unidad I:
+
+- Consumo de stack y heap durante la ejecucion simulada.
+- Direcciones y contenido de celdas de memoria.
+- Visualizacion de endianness para enteros de 32 bits.
+- Conversion entre decimal, binario, hexadecimal y ASCII.
+
+<iframe src="/estructuras-de-datos/demos/unidad-i-laboratorio-memoria.html" title="Laboratorio visual Unidad I" style="width: 100%; height: 980px; border: 1px solid #334155; border-radius: 12px;"></iframe>
+
+
+## Ejercicios propuestos
+
+1. Modificar el caso C++ para usar un arreglo dinamico de `n` enteros y comparar su direccion base con un `vector<int>`.
+2. En Java, agregar busqueda por nombre en la agenda y medir tiempo con `System.nanoTime()`.
+3. En Python, repetir la comparacion usando `array` del modulo `array` y documentar diferencias de memoria.
+4. Construir una tabla donde compares stack/heap para los tres lenguajes.
+
+## Glosario rapido
+
+- **Direccion de memoria**: posicion numerica de una celda.
+- **Desreferenciar**: acceder al dato apuntado por una direccion.
+- **Heap**: region para objetos/estructuras dinamicas.
+- **Stack**: region para contexto de llamada y variables locales.
+- **Padding**: bytes de relleno para alinear datos.
