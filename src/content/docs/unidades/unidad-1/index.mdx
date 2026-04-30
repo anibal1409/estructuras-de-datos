@@ -1,0 +1,97 @@
+---
+title: Unidad 1 - Arboles en juego
+description: Teoria, codigo, recursos descargables y demo interactiva.
+---
+
+## Teoria breve
+
+En esta unidad se aplica un **arbol binario de busqueda (ABB)** para modelar estructuras de juego: inventario ordenado, ranking o decisiones.
+
+## Codigo fuente
+
+### C++
+
+```cpp
+#include <iostream>
+using namespace std;
+
+struct Node {
+  int key;
+  Node* left;
+  Node* right;
+  Node(int value) : key(value), left(nullptr), right(nullptr) {}
+};
+
+Node* insertNode(Node* root, int value) {
+  if (!root) return new Node(value);
+  if (value < root->key) root->left = insertNode(root->left, value);
+  else if (value > root->key) root->right = insertNode(root->right, value);
+  return root;
+}
+
+void inOrder(Node* root) {
+  if (!root) return;
+  inOrder(root->left);
+  cout << root->key << " ";
+  inOrder(root->right);
+}
+
+int main() {
+  Node* root = nullptr;
+  for (int value : {8, 3, 10, 1, 6}) root = insertNode(root, value);
+  inOrder(root);
+  return 0;
+}
+```
+
+### Java
+
+```java
+class Node {
+    int key;
+    Node left;
+    Node right;
+
+    Node(int key) {
+        this.key = key;
+    }
+}
+
+public class BinarySearchTree {
+    private Node root;
+
+    public void insert(int key) {
+        root = insertRec(root, key);
+    }
+
+    private Node insertRec(Node current, int key) {
+        if (current == null) return new Node(key);
+        if (key < current.key) current.left = insertRec(current.left, key);
+        else if (key > current.key) current.right = insertRec(current.right, key);
+        return current;
+    }
+}
+```
+
+## Descargas
+
+- [Descargar `bst.cpp`](/estructuras-de-datos/descargas/unidad-1/bst.cpp)
+- [Descargar `BinarySearchTree.java`](/estructuras-de-datos/descargas/unidad-1/BinarySearchTree.java)
+- [Descargar `guia-unidad-1.pdf`](/estructuras-de-datos/descargas/unidad-1/guia-unidad-1.pdf)
+- [Descargar ZIP de la unidad](/estructuras-de-datos/descargas/unidad-1.zip)
+
+## PDF embebido
+
+<iframe src="/estructuras-de-datos/descargas/unidad-1/guia-unidad-1.pdf" title="PDF Unidad 1" style="width: 100%; height: 520px; border: 1px solid #334155; border-radius: 12px;"></iframe>
+
+## Video embebido
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/H5JubkIy_p8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+## Imagen de referencia
+
+![Esquema de arbol binario](/estructuras-de-datos/media/unidad-1/arbol.svg)
+
+## Demo interactiva
+
+<iframe src="/estructuras-de-datos/demos/tree-game.html" title="Demo arbol en juego" style="width: 100%; height: 720px; border: 1px solid #334155; border-radius: 12px;"></iframe>

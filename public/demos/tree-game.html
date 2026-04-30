@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo Arbol en Juego</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+    .app { max-width: 980px; margin: 0 auto; padding: 20px; }
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    input, button { border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: #f8fafc; padding: 8px 10px; }
+    button { cursor: pointer; }
+    .panel { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+    .board { background: #020617; border: 1px solid #334155; border-radius: 12px; padding: 8px; }
+    svg { width: 100%; height: 520px; }
+    .log { background: #020617; border: 1px solid #334155; border-radius: 12px; padding: 12px; }
+    .small { font-size: 0.9rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Arboles en juego (demo interactiva)</h1>
+    <p class="small">Inserta nodos para crear tu arbol y simula recorridos (in-order, pre-order, post-order).</p>
+    <div class="controls">
+      <input id="nodeInput" type="number" placeholder="Valor de nodo (0-99)" min="0" max="99" />
+      <button id="insertBtn">Insertar nodo</button>
+      <button id="inorderBtn">Recorrer in-order</button>
+      <button id="preorderBtn">Recorrer pre-order</button>
+      <button id="postorderBtn">Recorrer post-order</button>
+      <button id="resetBtn">Reiniciar</button>
+    </div>
+    <div class="panel">
+      <div class="board"><svg id="treeSvg"></svg></div>
+      <div class="log">
+        <h3>Consola de juego</h3>
+        <div id="status">Listo para construir el arbol.</div>
+        <h4>Recorrido actual</h4>
+        <div id="route">-</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class Node {
+      constructor(value) {
+        this.value = value;
+        this.left = null;
+        this.right = null;
+        this.x = 0;
+        this.y = 0;
+      }
+    }
+
+    let root = null;
+    const svg = document.getElementById('treeSvg');
+    const statusEl = document.getElementById('status');
+    const routeEl = document.getElementById('route');
+
+    function insertNode(current, value) {
+      if (!current) return new Node(value);
+      if (value < current.value) current.left = insertNode(current.left, value);
+      else if (value > current.value) current.right = insertNode(current.right, value);
+      return current;
+    }
+
+    function computePositions(node, depth, minX, maxX) {
+      if (!node) return;
+      node.x = (minX + maxX) / 2;
+      node.y = 60 + depth * 85;
+      computePositions(node.left, depth + 1, minX, node.x - 24);
+      computePositions(node.right, depth + 1, node.x + 24, maxX);
+    }
+
+    function drawEdges(node) {
+      if (!node) return '';
+      let lines = '';
+      if (node.left) {
+        lines += `<line x1="${node.x}" y1="${node.y}" x2="${node.left.x}" y2="${node.left.y}" stroke="#64748b" stroke-width="2"/>`;
+        lines += drawEdges(node.left);
+      }
+      if (node.right) {
+        lines += `<line x1="${node.x}" y1="${node.y}" x2="${node.right.x}" y2="${node.right.y}" stroke="#64748b" stroke-width="2"/>`;
+        lines += drawEdges(node.right);
+      }
+      return lines;
+    }
+
+    function drawNodes(node) {
+      if (!node) return '';
+      return `
+        <g>
+          <circle cx="${node.x}" cy="${node.y}" r="22" fill="#2563eb" stroke="#93c5fd" stroke-width="2"></circle>
+          <text x="${node.x}" y="${node.y + 5}" text-anchor="middle" fill="#f8fafc" font-size="15">${node.value}</text>
+        </g>
+      ` + drawNodes(node.left) + drawNodes(node.right);
+    }
+
+    function renderTree() {
+      if (!root) {
+        svg.innerHTML = '<text x="20" y="30" fill="#94a3b8">Arbol vacio. Inserta el primer nodo.</text>';
+        return;
+      }
+      computePositions(root, 0, 40, 920);
+      svg.innerHTML = drawEdges(root) + drawNodes(root);
+    }
+
+    function traversal(type) {
+      const result = [];
+      const walk = (node) => {
+        if (!node) return;
+        if (type === 'pre') result.push(node.value);
+        walk(node.left);
+        if (type === 'in') result.push(node.value);
+        walk(node.right);
+        if (type === 'post') result.push(node.value);
+      };
+      walk(root);
+      return result;
+    }
+
+    function runTraversal(type, label) {
+      if (!root) {
+        statusEl.textContent = 'No hay nodos para recorrer.';
+        return;
+      }
+      const result = traversal(type);
+      statusEl.textContent = `Ejecutado recorrido ${label}.`;
+      routeEl.textContent = result.join(' -> ');
+    }
+
+    document.getElementById('insertBtn').addEventListener('click', () => {
+      const input = document.getElementById('nodeInput');
+      const value = Number.parseInt(input.value, 10);
+      if (Number.isNaN(value) || value < 0 || value > 99) {
+        statusEl.textContent = 'Valor invalido. Usa numeros entre 0 y 99.';
+        return;
+      }
+      root = insertNode(root, value);
+      renderTree();
+      statusEl.textContent = `Nodo ${value} insertado.`;
+      input.value = '';
+      input.focus();
+    });
+
+    document.getElementById('inorderBtn').addEventListener('click', () => runTraversal('in', 'in-order'));
+    document.getElementById('preorderBtn').addEventListener('click', () => runTraversal('pre', 'pre-order'));
+    document.getElementById('postorderBtn').addEventListener('click', () => runTraversal('post', 'post-order'));
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      root = null;
+      renderTree();
+      routeEl.textContent = '-';
+      statusEl.textContent = 'Juego reiniciado.';
+    });
+
+    renderTree();
+  </script>
+</body>
+</html>

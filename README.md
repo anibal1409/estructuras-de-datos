@@ -1,49 +1,76 @@
-# Starlight Starter Kit: Basics
+# Guia de Unidades (Astro + Starlight)
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+Sitio educativo en espanol, publico y gestionado por archivos, desplegado en GitHub Pages en `anibal1409.github.io/estructuras-de-datos`.
 
-```
-npm create astro@latest -- --template starlight
-```
+## Requisitos
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+- Node.js 22+ (probado con Node 22.22.0)
+- npm 10+
 
-## 🚀 Project Structure
+## Instalacion
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```bash
+npm install
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## Ejecutar en local
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+```bash
+npm run dev
+```
 
-Static assets, like favicons, can be placed in the `public/` directory.
+## Build de produccion
 
-## 🧞 Commands
+```bash
+npm run check
+npm run build
+npm run preview
+```
 
-All commands are run from the root of the project, from a terminal:
+## Deploy automatico (GitHub Pages)
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+1. Crea el repositorio `estructuras-de-datos` en GitHub.
+2. Sube este proyecto a la rama `main`.
+3. En GitHub, activa **Settings > Pages > Build and deployment > Source: GitHub Actions**.
+4. El workflow `deploy.yml` publicara automaticamente cada push a `main`.
 
-## 👀 Want to learn more?
+## Base path para Pages de repositorio
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+El proyecto ya esta configurado con:
+
+- `site: https://anibal1409.github.io`
+- `base: /estructuras-de-datos`
+
+Archivo: `astro.config.mjs`
+
+## Estructura de contenido por unidades
+
+- `src/content/docs/unidades/unidad-1/index.mdx`
+- `src/content/docs/unidades/unidad-2/index.mdx`
+
+Puedes crear tantas unidades como necesites sin plantilla rigida; solo agrega un nuevo `index.mdx` en la carpeta de la unidad y actualiza el sidebar en `astro.config.mjs`.
+
+## Como agregar nuevas unidades
+
+1. Crear carpeta: `src/content/docs/unidades/unidad-N/`
+2. Crear pagina: `src/content/docs/unidades/unidad-N/index.mdx`
+3. Agregar item en `sidebar` dentro de `astro.config.mjs`
+4. (Opcional) subir descargas en `public/descargas/unidad-N/`
+5. (Opcional) crear ZIP: `public/descargas/unidad-N.zip`
+
+## Como subir archivos descargables
+
+- Individuales: coloca archivos en `public/descargas/unidad-N/`
+- ZIP por unidad: genera `public/descargas/unidad-N.zip`
+- Enlaza desde tu MDX con rutas absolutas incluyendo base: `/estructuras-de-datos/descargas/unidad-N/archivo.ext`
+
+## Multimedia y demos
+
+- Imagenes/SVG: `public/media/...`
+- PDFs: `public/descargas/...`
+- Videos embebidos: iframe de YouTube/Vimeo en las paginas `.mdx`
+- Demo interactiva: `public/demos/tree-game.html` embebida por iframe en la Unidad 1
+
+## Busqueda global
+
+Starlight incluye buscador global integrado por defecto (Pagefind) al construir el sitio.
